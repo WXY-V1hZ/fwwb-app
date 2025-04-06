@@ -5,7 +5,7 @@
         <img src="../assets/competition-logo.png" alt="服务外包大赛logo" />
       </div>
       <div class="team-logo">
-        <img src="../assets/team-logo.png" alt="队伍logo" />
+        <img src="../assets/team-logo.jpg" alt="队伍logo" />
       </div>
     </div>
     <div class="title-container">
