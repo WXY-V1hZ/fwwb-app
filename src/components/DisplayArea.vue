@@ -5,11 +5,8 @@
         <div class="display-card">
           <div class="card-title">红外图像 (输入1)</div>
           <div class="image-container">
-            <a v-if="images.infraredImage" 
-               :href="getResourceUrl(images.infraredImage)" 
-               data-fancybox="infrared-gallery"
-               :data-caption="'红外图像'"
-               class="fancybox-link">
+            <a v-if="images.infraredImage" :href="getResourceUrl(images.infraredImage)" data-fancybox="infrared-gallery"
+              :data-caption="'红外图像'" class="fancybox-link">
               <img :src="getResourceUrl(images.infraredImage)" alt="红外图像" />
               <div class="zoom-hint">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -29,11 +26,8 @@
         <div class="display-card">
           <div class="card-title">热成像图像 (输入2)</div>
           <div class="image-container">
-            <a v-if="images.thermalImage" 
-               :href="getResourceUrl(images.thermalImage)" 
-               data-fancybox="thermal-gallery"
-               :data-caption="'热成像图像'"
-               class="fancybox-link">
+            <a v-if="images.thermalImage" :href="getResourceUrl(images.thermalImage)" data-fancybox="thermal-gallery"
+              :data-caption="'热成像图像'" class="fancybox-link">
               <img :src="getResourceUrl(images.thermalImage)" alt="热成像图像" />
               <div class="zoom-hint">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -59,8 +53,10 @@
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
           <div class="processing-progress">
-            <div class="processing-progress-bar"
-              :style="{ width: processingStatus.isProcessing ? `${processingStatus.progress}%` : '0%' }"></div>
+            <div class="processing-progress-bar" :style="{
+              width: `${progressDisplay}%`,
+              backgroundPosition: `${100 - progressDisplay}% 0`
+            }"></div>
           </div>
         </div>
       </div>
@@ -81,11 +77,8 @@
             </button>
           </div>
           <div class="image-container">
-            <a v-if="images.processedImage" 
-               :href="getResourceUrl(images.processedImage)" 
-               data-fancybox="processed-gallery"
-               :data-caption="'处理结果 - 浓烟环境下人体目标检测'"
-               class="fancybox-link">
+            <a v-if="images.processedImage" :href="getResourceUrl(images.processedImage)"
+              data-fancybox="processed-gallery" :data-caption="'处理结果 - 浓烟环境下人体目标检测'" class="fancybox-link">
               <img :src="getResourceUrl(images.processedImage)" alt="处理结果" />
               <div class="zoom-hint">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -125,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import api from '../api';
 import ResultsSummary from './ResultsSummary.vue';
 import type { ImageData, ProcessingStatus } from '../types';
@@ -140,13 +133,29 @@ const props = defineProps<{
 
 const showSummary = ref(false);
 const showCompletionToast = ref(false);
+const displayProgress = ref(0); // 用于显示的进度值
+
+// 计算实际显示的进度
+const progressDisplay = computed(() => {
+  return displayProgress.value;
+});
 
 // 监听处理状态变化
 watch(() => props.processingStatus, (newStatus, oldStatus) => {
+  // 实时更新显示进度
+  displayProgress.value = newStatus.progress;
+
   // 如果处理完成（从处理中变为未处理状态，且进度为100）
   if (oldStatus.isProcessing && !newStatus.isProcessing && newStatus.progress === 100) {
     // 显示处理完成提示
     showCompletionToast.value = true;
+
+    // 保持进度条显示100%状态1秒
+    setTimeout(() => {
+      // 1秒后将显示进度重置为0
+      displayProgress.value = 0;
+    }, 1000);
+
     // 自动隐藏提示
     setTimeout(() => {
       showCompletionToast.value = false;
@@ -369,9 +378,13 @@ function toggleSummary() {
 
 .processing-progress-bar {
   height: 100%;
-  background-color: var(--accent-color);
+  background: linear-gradient(to right,
+      #FFC107 0%,
+      #CDDC39 50%,
+      #4CAF50 100%);
+  background-size: 200% 100%;
   width: 0%;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background-position 0.3s ease;
 }
 
 .output-display {
