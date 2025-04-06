@@ -5,7 +5,23 @@
         <div class="display-card">
           <div class="card-title">红外图像 (输入1)</div>
           <div class="image-container">
-            <img v-if="images.infraredImage" :src="getResourceUrl(images.infraredImage)" alt="红外图像" />
+            <a v-if="images.infraredImage" 
+               :href="getResourceUrl(images.infraredImage)" 
+               data-fancybox="infrared-gallery"
+               :data-caption="'红外图像'"
+               class="fancybox-link">
+              <img :src="getResourceUrl(images.infraredImage)" alt="红外图像" />
+              <div class="zoom-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>点击放大</span>
+              </div>
+            </a>
             <div v-else class="no-image">未上传红外图像</div>
           </div>
         </div>
@@ -13,7 +29,23 @@
         <div class="display-card">
           <div class="card-title">热成像图像 (输入2)</div>
           <div class="image-container">
-            <img v-if="images.thermalImage" :src="getResourceUrl(images.thermalImage)" alt="热成像图像" />
+            <a v-if="images.thermalImage" 
+               :href="getResourceUrl(images.thermalImage)" 
+               data-fancybox="thermal-gallery"
+               :data-caption="'热成像图像'"
+               class="fancybox-link">
+              <img :src="getResourceUrl(images.thermalImage)" alt="热成像图像" />
+              <div class="zoom-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>点击放大</span>
+              </div>
+            </a>
             <div v-else class="no-image">未上传热成像图像</div>
           </div>
         </div>
@@ -49,7 +81,23 @@
             </button>
           </div>
           <div class="image-container">
-            <img v-if="images.processedImage" :src="getResourceUrl(images.processedImage)" alt="处理结果" />
+            <a v-if="images.processedImage" 
+               :href="getResourceUrl(images.processedImage)" 
+               data-fancybox="processed-gallery"
+               :data-caption="'处理结果 - 浓烟环境下人体目标检测'"
+               class="fancybox-link">
+              <img :src="getResourceUrl(images.processedImage)" alt="处理结果" />
+              <div class="zoom-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>点击放大</span>
+              </div>
+            </a>
             <div v-else class="no-image">尚未处理</div>
           </div>
         </div>
@@ -77,10 +125,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import api from '../api';
 import ResultsSummary from './ResultsSummary.vue';
 import type { ImageData, ProcessingStatus } from '../types';
+import { Fancybox } from "@fancyapps/ui";
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
 const props = defineProps<{
   images: ImageData;
@@ -103,6 +153,28 @@ watch(() => props.processingStatus, (newStatus, oldStatus) => {
     }, 5000);
   }
 }, { deep: true });
+
+// 初始化 Fancybox
+onMounted(() => {
+  // 配置 Fancybox
+  Fancybox.bind("[data-fancybox]", {
+    // 自定义 Fancybox 配置
+    animated: true,
+    showClass: "fancybox-fadeIn",
+    hideClass: "fancybox-fadeOut",
+    dragToClose: false,
+    trapFocus: true,
+    autoFocus: true,
+    placeFocusBack: true,
+    // 界面语言可设置为中文
+    l10n: {
+      CLOSE: "关闭",
+      NEXT: "下一张",
+      PREV: "上一张",
+      ZOOM: "缩放",
+    }
+  });
+});
 
 function getResourceUrl(sourceName: string | null) {
   if (!sourceName) return '';
@@ -207,6 +279,17 @@ function toggleSummary() {
   justify-content: center;
   padding: 15px;
   overflow: hidden;
+  position: relative;
+}
+
+.fancybox-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+  position: relative;
 }
 
 .image-container img {
@@ -214,6 +297,32 @@ function toggleSummary() {
   max-height: 100%;
   object-fit: contain;
   border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.fancybox-link:hover img {
+  transform: scale(1.03);
+}
+
+.zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+}
+
+.fancybox-link:hover .zoom-hint {
+  opacity: 1;
 }
 
 .no-image {
