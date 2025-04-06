@@ -9,15 +9,13 @@
       </div>
     </div>
     <div class="title-container">
-      <h1 class="main-title">服务外包-浓烟环境人体目标判别-演示</h1>
+      <h1 class="main-title">服务外包大赛 - 浓烟环境人体目标判别 - 项目演示</h1>
       <h2 class="team-name">It's mAI go!!!!!</h2>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-// Banner组件不需要特殊逻辑
-</script>
+<script setup lang="ts"/>
 
 <style scoped>
 .banner {
@@ -39,7 +37,7 @@
 
 .competition-logo img,
 .team-logo img {
-  height: 50px;
+  height: 80px;
   object-fit: contain;
 }
 
@@ -50,15 +48,15 @@
 
 .main-title {
   color: #ffffff;
-  font-size: 28px;
+  font-size: 30px;
   margin: 0;
   letter-spacing: 1px;
   font-weight: bold;
 }
 
 .team-name {
-  color: #ff9800;
-  font-size: 18px;
+  color: #9dd1f0;
+  font-size: 24px;
   margin: 5px 0 0;
   font-style: italic;
 }

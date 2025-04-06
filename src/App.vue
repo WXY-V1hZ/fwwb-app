@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import Banner from './components/Banner.vue';
 import ControlPanel from './components/ControlPanel.vue';
 import DisplayArea from './components/DisplayArea.vue';
