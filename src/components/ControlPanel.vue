@@ -42,11 +42,15 @@
           开始处理
         </button>
 
-        <div class="progress-container" v-if="processingStatus.isProcessing">
+        <div class="progress-container" v-if="processingStatus.isProcessing || displayProgress > 0">
           <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: `${processingStatus.progress}%` }"></div>
+            <div class="progress-fill" 
+                 :style="{ 
+                   width: `${displayProgress}%`,
+                   backgroundPosition: `${100 - displayProgress}% 0`
+                 }"></div>
           </div>
-          <div class="progress-text">{{ processingStatus.progress }}%</div>
+          <div class="progress-text">{{ displayProgress }}%</div>
         </div>
       </div>
 
@@ -61,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import api from '../api';
 import History from './History.vue';
 import DragDropUpload from './DragDropUpload.vue';
@@ -79,6 +83,7 @@ const thermalFile = ref<string | null>(null);
 const previewInfrared = ref<string | null>(null);
 const previewThermal = ref<string | null>(null);
 const processedImage = ref<string | null>(null);
+const displayProgress = ref(0); // 用于显示的进度值
 
 // 使用computed属性确保侧边栏宽度一致
 const panelStyle = computed(() => {
@@ -91,6 +96,21 @@ const processingStatus = ref<ProcessingStatus>({
   isProcessing: false,
   progress: 0
 });
+
+// 监听处理状态变化
+watch(() => processingStatus.value, (newStatus, oldStatus) => {
+  // 实时更新显示进度
+  displayProgress.value = newStatus.progress;
+
+  // 如果处理完成（从处理中变为未处理状态，且进度为100）
+  if (oldStatus.isProcessing && !newStatus.isProcessing && newStatus.progress === 100) {
+    // 保持进度条显示100%状态1秒
+    setTimeout(() => {
+      // 1秒后将显示进度重置为0
+      displayProgress.value = 0;
+    }, 1000);
+  }
+}, { deep: true });
 
 const canProcess = computed(() => {
   return infraredFile.value !== null && thermalFile.value !== null;
@@ -216,11 +236,8 @@ async function startProcessing() {
 
         // 使用单独的方法更新图像数据
         updateImages();
-
-        // 重置进度条
-        setTimeout(() => {
-          processingStatus.value.progress = 0;
-        }, 1000);
+        
+        // 注意：不再需要这里的重置，由watch监听器处理延迟重置
       }, 500);
     } else {
       processingStatus.value.isProcessing = false;
@@ -357,18 +374,12 @@ async function startProcessing() {
 
 .progress-fill {
   height: 100%;
-  background-color: var(--secondary-color);
-  transition: width 0.5s ease;
-  background-image: linear-gradient(45deg,
-      rgba(255, 255, 255, 0.15) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(255, 255, 255, 0.15) 75%,
-      transparent 75%,
-      transparent);
-  background-size: 1rem 1rem;
-  animation: progress-bar-stripes 1s linear infinite;
+  background: linear-gradient(to right, 
+    #FFC107 0%, 
+    #CDDC39 50%, 
+    #4CAF50 100%);
+  background-size: 200% 100%;
+  transition: width 0.3s ease, background-position 0.3s ease;
 }
 
 @keyframes progress-bar-stripes {
