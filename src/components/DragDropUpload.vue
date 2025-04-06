@@ -4,7 +4,7 @@
         <div v-if="previewImage" class="preview-container">
             <img :src="previewImage" alt="图像预览" />
         </div>
-        <div v-else class="upload-placeholder">
+        <div v-else class="upload-placeholder" @click="triggerFileInput">
             <div class="upload-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -19,8 +19,9 @@
             </div>
         </div>
 
+        <!-- 隐藏文件输入框，通过按钮和占位区域的点击来触发 -->
         <input type="file" class="file-input" ref="fileInput" accept="image/*" @change="handleFileChange"
-            :disabled="disabled" />
+            :disabled="disabled" style="display: none;" />
 
         <div class="controls" v-if="previewImage">
             <button class="remove-button" @click.stop="removeFile" :disabled="disabled">
@@ -45,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps<{
     label: string;
@@ -151,17 +152,6 @@ function removeFile() {
     transform: scale(1.02);
 }
 
-.file-input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 1;
-}
-
 .upload-placeholder {
     display: flex;
     flex-direction: column;
@@ -169,6 +159,8 @@ function removeFile() {
     justify-content: center;
     padding: 20px;
     text-align: center;
+    width: 100%;
+    height: 100%;
 }
 
 .upload-icon {
@@ -199,12 +191,14 @@ function removeFile() {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 0; /* 移除内边距 */
 }
 
 .preview-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 改为cover确保填满容器 */
+    border-radius: 6px; /* 稍微减小圆角以匹配容器 */
 }
 
 .controls {
@@ -218,6 +212,7 @@ function removeFile() {
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: opacity 0.2s ease;
+    z-index: 5;
 }
 
 .drag-drop-container:hover .controls {
@@ -236,6 +231,8 @@ function removeFile() {
     gap: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 10;
 }
 
 .remove-button {

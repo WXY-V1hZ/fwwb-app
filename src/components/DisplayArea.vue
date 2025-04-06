@@ -9,7 +9,7 @@
             <div v-else class="no-image">未上传红外图像</div>
           </div>
         </div>
-        
+
         <div class="display-card">
           <div class="card-title">热成像图像 (输入2)</div>
           <div class="image-container">
@@ -18,34 +18,29 @@
           </div>
         </div>
       </div>
-      
+
       <div class="arrow-container">
         <div class="process-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
           <div class="processing-progress">
-            <div 
-              class="processing-progress-bar" 
-              :style="{ width: processingStatus.isProcessing ? `${processingStatus.progress}%` : '0%' }"
-            ></div>
+            <div class="processing-progress-bar"
+              :style="{ width: processingStatus.isProcessing ? `${processingStatus.progress}%` : '0%' }"></div>
           </div>
         </div>
       </div>
-      
+
       <div class="output-display">
         <div class="display-card result-card">
           <div class="card-title">
             处理结果 (浓烟环境下人体目标检测)
-            <button 
-              v-if="images.processedImage" 
-              class="summary-toggle-button" 
-              @click="toggleSummary"
-              :class="{ 'active': showSummary }"
-              title="显示/隐藏分析结果"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button v-if="images.processedImage" class="summary-toggle-button" @click="toggleSummary"
+              :class="{ 'active': showSummary }" title="显示/隐藏分析结果">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 <line x1="11" y1="8" x2="11" y2="14"></line>
@@ -63,7 +58,7 @@
 
     <!-- 当有处理结果且用户点击分析按钮时显示结果分析 -->
     <ResultsSummary v-if="showSummary && images.processedImage" :visible="showSummary" />
-    
+
     <!-- 检测完成提示 -->
     <div class="detection-complete-toast" v-if="showCompletionToast">
       <div class="toast-content">
@@ -82,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, watch } from 'vue';
+import { ref, watch } from 'vue';
 import api from '../api';
 import ResultsSummary from './ResultsSummary.vue';
 import type { ImageData, ProcessingStatus } from '../types';
@@ -218,6 +213,7 @@ function toggleSummary() {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: 8px;
 }
 
 .no-image {
@@ -327,6 +323,7 @@ function toggleSummary() {
     transform: translate(-50%, 100px);
     opacity: 0;
   }
+
   to {
     transform: translate(-50%, 0);
     opacity: 1;
@@ -337,6 +334,7 @@ function toggleSummary() {
   from {
     width: 100%;
   }
+
   to {
     width: 0%;
   }
@@ -347,7 +345,7 @@ function toggleSummary() {
     flex-direction: column;
     height: auto;
   }
-  
+
   .display-card {
     min-height: 200px;
   }

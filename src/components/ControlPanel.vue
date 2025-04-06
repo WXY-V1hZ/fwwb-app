@@ -21,24 +21,14 @@
       <div class="upload-section">
         <div class="upload-item">
           <div class="upload-label">红外图像</div>
-          <DragDropUpload
-            label="红外"
-            :preview-image="previewInfrared"
-            :disabled="processingStatus.isProcessing"
-            @file-selected="handleInfraredUpload"
-            @file-removed="removeInfraredImage"
-          />
+          <DragDropUpload label="红外" :preview-image="previewInfrared" :disabled="processingStatus.isProcessing"
+            @file-selected="handleInfraredUpload" @file-removed="removeInfraredImage" />
         </div>
 
         <div class="upload-item">
           <div class="upload-label">热成像图像</div>
-          <DragDropUpload
-            label="热成像"
-            :preview-image="previewThermal"
-            :disabled="processingStatus.isProcessing"
-            @file-selected="handleThermalUpload"
-            @file-removed="removeThermalImage"
-          />
+          <DragDropUpload label="热成像" :preview-image="previewThermal" :disabled="processingStatus.isProcessing"
+            @file-selected="handleThermalUpload" @file-removed="removeThermalImage" />
         </div>
       </div>
 
@@ -71,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineEmits } from 'vue';
+import { ref, computed } from 'vue';
 import api from '../api';
 import History from './History.vue';
 import DragDropUpload from './DragDropUpload.vue';

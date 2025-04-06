@@ -15,7 +15,7 @@
   </div>
 </template>
 
-<script setup lang="ts"/>
+<script setup lang="ts" />
 
 <style scoped>
 .banner {
@@ -39,6 +39,7 @@
 .team-logo img {
   height: 80px;
   object-fit: contain;
+  border-radius: 8px;
 }
 
 .title-container {
@@ -66,11 +67,11 @@
     flex-direction: column;
     padding: 12px;
   }
-  
+
   .main-title {
     font-size: 22px;
   }
-  
+
   .team-name {
     font-size: 16px;
   }
