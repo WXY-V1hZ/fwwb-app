@@ -4,7 +4,8 @@
     <div class="main-content">
       <ControlPanel 
         @update:images="updateImages" 
-        @update:processingStatus="updateProcessingStatus" 
+        @update:processingStatus="updateProcessingStatus"
+        @update:isPanelCollapsed="updatePanelCollapsed"
       />
       <DisplayArea 
         :images="images" 
@@ -40,6 +41,10 @@ function updateImages(newImages: ImageData) {
 
 function updateProcessingStatus(status: ProcessingStatus) {
   processingStatus.value = {...status};
+}
+
+function updatePanelCollapsed(collapsed: boolean) {
+  isPanelCollapsed.value = collapsed;
 }
 </script>
 

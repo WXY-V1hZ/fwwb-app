@@ -1,5 +1,5 @@
 <template>
-  <div class="control-panel" :class="{ 'collapsed': isCollapsed }">
+  <div class="control-panel" :class="{ 'collapsed': isCollapsed }" :style="panelStyle">
     <div class="toggle-button" @click="togglePanel" title="展开/收起面板">
       <span v-if="isCollapsed">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -98,7 +98,8 @@ import type { ProcessingStatus, ImageData } from '../types';
 
 const emit = defineEmits<{
   'update:images': [{ infraredImage: string | null; thermalImage: string | null; processedImage: string | null }],
-  'update:processingStatus': [ProcessingStatus]
+  'update:processingStatus': [ProcessingStatus],
+  'update:isPanelCollapsed': [boolean]
 }>();
 
 const isCollapsed = ref(false);
@@ -107,6 +108,13 @@ const thermalFile = ref<string | null>(null);
 const previewInfrared = ref<string | null>(null);
 const previewThermal = ref<string | null>(null);
 const processedImage = ref<string | null>(null);
+
+// 使用computed属性确保侧边栏宽度一致
+const panelStyle = computed(() => {
+  return {
+    width: isCollapsed.value ? '40px' : '300px'
+  };
+});
 
 const processingStatus = ref<ProcessingStatus>({
   isProcessing: false,
@@ -119,11 +127,19 @@ const canProcess = computed(() => {
 
 function togglePanel() {
   isCollapsed.value = !isCollapsed.value;
-  // 通知父组件调整布局
+  // 通知父组件侧边栏状态变化，使用单独的事件
+  emit('update:isPanelCollapsed', isCollapsed.value);
+
+  // 更新图像数据，但不影响侧边栏宽度
+  updateImages();
+}
+
+// 单独的方法来更新图像数据
+function updateImages() {
   emit('update:images', {
     infraredImage: infraredFile.value,
     thermalImage: thermalFile.value,
-    processedImage: null
+    processedImage: processedImage.value
   });
 }
 
@@ -146,12 +162,8 @@ function loadFromHistory(historyImages: ImageData) {
     previewThermal.value = api.getResource(thermalFile.value);
   }
 
-  // 更新显示
-  emit('update:images', {
-    infraredImage: infraredFile.value,
-    thermalImage: thermalFile.value,
-    processedImage: processedImage.value
-  });
+  // 更新显示但不影响侧边栏宽度
+  updateImages();
 }
 
 async function handleInfraredUpload(event: Event) {
@@ -165,11 +177,8 @@ async function handleInfraredUpload(event: Event) {
       infraredFile.value = response.data.data;
       previewInfrared.value = api.getResource(response.data.data);
 
-      emit('update:images', {
-        infraredImage: infraredFile.value,
-        thermalImage: thermalFile.value,
-        processedImage: null
-      });
+      // 使用单独的方法更新图像数据，避免影响侧边栏宽度
+      updateImages();
     } else {
       alert('上传失败: ' + response.data.info);
     }
@@ -190,11 +199,8 @@ async function handleThermalUpload(event: Event) {
       thermalFile.value = response.data.data;
       previewThermal.value = api.getResource(response.data.data);
 
-      emit('update:images', {
-        infraredImage: infraredFile.value,
-        thermalImage: thermalFile.value,
-        processedImage: null
-      });
+      // 使用单独的方法更新图像数据，避免影响侧边栏宽度
+      updateImages();
     } else {
       alert('上传失败: ' + response.data.info);
     }
@@ -206,41 +212,36 @@ async function handleThermalUpload(event: Event) {
 
 async function startProcessing() {
   if (!canProcess.value || processingStatus.value.isProcessing) return;
-  
+
   try {
     processingStatus.value = {
       isProcessing: true,
       progress: 30
     };
-    
+
     emit('update:processingStatus', processingStatus.value);
-    
+
     const response = await api.getResult(infraredFile.value!, thermalFile.value!);
-    
+
     if (response.data.status === 'success') {
       processingStatus.value.progress = 70;
       emit('update:processingStatus', processingStatus.value);
-      
+
       // 更新处理后的图像
       processedImage.value = response.data.data;
-      
+
       // 完成处理
       setTimeout(() => {
         processingStatus.value = {
           isProcessing: false,
           progress: 100
         };
-        
+
         emit('update:processingStatus', processingStatus.value);
-        
-        const resultImages = {
-          infraredImage: infraredFile.value,
-          thermalImage: thermalFile.value,
-          processedImage: processedImage.value
-        };
-        
-        emit('update:images', resultImages);
-        
+
+        // 使用单独的方法更新图像数据
+        updateImages();
+
         // 重置进度条
         setTimeout(() => {
           processingStatus.value.progress = 0;
@@ -265,13 +266,10 @@ async function startProcessing() {
   border-right: 1px solid #e0e0e0;
   height: 100%;
   transition: width 0.3s ease;
-  width: 300px;
   overflow: hidden;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.control-panel.collapsed {
-  width: 40px;
+  flex-shrink: 0;
+  /* 防止侧边栏被压缩 */
 }
 
 .toggle-button {
@@ -303,6 +301,8 @@ async function startProcessing() {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  /* 确保内容宽度充满父容器 */
 }
 
 .panel-title {
