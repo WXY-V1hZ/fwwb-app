@@ -21,44 +21,24 @@
       <div class="upload-section">
         <div class="upload-item">
           <div class="upload-label">红外图像</div>
-          <div class="upload-preview">
-            <img v-if="previewInfrared" :src="previewInfrared" alt="红外图像预览" />
-            <div v-else class="no-preview">未上传图像</div>
-          </div>
-          <div class="upload-actions">
-            <label class="upload-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              选择文件
-              <input type="file" accept="image/*" @change="handleInfraredUpload" hidden
-                :disabled="processingStatus.isProcessing" />
-            </label>
-          </div>
+          <DragDropUpload
+            label="红外"
+            :preview-image="previewInfrared"
+            :disabled="processingStatus.isProcessing"
+            @file-selected="handleInfraredUpload"
+            @file-removed="removeInfraredImage"
+          />
         </div>
 
         <div class="upload-item">
           <div class="upload-label">热成像图像</div>
-          <div class="upload-preview">
-            <img v-if="previewThermal" :src="previewThermal" alt="热成像图像预览" />
-            <div v-else class="no-preview">未上传图像</div>
-          </div>
-          <div class="upload-actions">
-            <label class="upload-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              选择文件
-              <input type="file" accept="image/*" @change="handleThermalUpload" hidden
-                :disabled="processingStatus.isProcessing" />
-            </label>
-          </div>
+          <DragDropUpload
+            label="热成像"
+            :preview-image="previewThermal"
+            :disabled="processingStatus.isProcessing"
+            @file-selected="handleThermalUpload"
+            @file-removed="removeThermalImage"
+          />
         </div>
       </div>
 
@@ -94,6 +74,7 @@
 import { ref, computed, defineEmits } from 'vue';
 import api from '../api';
 import History from './History.vue';
+import DragDropUpload from './DragDropUpload.vue';
 import type { ProcessingStatus, ImageData } from '../types';
 
 const emit = defineEmits<{
@@ -166,11 +147,7 @@ function loadFromHistory(historyImages: ImageData) {
   updateImages();
 }
 
-async function handleInfraredUpload(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
-
-  const file = input.files[0];
+async function handleInfraredUpload(file: File) {
   try {
     const response = await api.uploadImage(file);
     if (response.data.status === 'success') {
@@ -188,11 +165,13 @@ async function handleInfraredUpload(event: Event) {
   }
 }
 
-async function handleThermalUpload(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
+function removeInfraredImage() {
+  infraredFile.value = null;
+  previewInfrared.value = null;
+  updateImages();
+}
 
-  const file = input.files[0];
+async function handleThermalUpload(file: File) {
   try {
     const response = await api.uploadImage(file);
     if (response.data.status === 'success') {
@@ -208,6 +187,12 @@ async function handleThermalUpload(event: Event) {
     console.error('上传失败:', error);
     alert('上传失败，请检查网络连接');
   }
+}
+
+function removeThermalImage() {
+  thermalFile.value = null;
+  previewThermal.value = null;
+  updateImages();
 }
 
 async function startProcessing() {
@@ -332,56 +317,6 @@ async function startProcessing() {
   font-weight: 500;
   margin-bottom: 10px;
   color: #333;
-}
-
-.upload-preview {
-  width: 100%;
-  height: 120px;
-  border: 1px dashed #ccc;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.upload-preview img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.no-preview {
-  color: #999;
-  font-size: 14px;
-}
-
-.upload-actions {
-  display: flex;
-  justify-content: center;
-}
-
-.upload-button {
-  background-color: var(--secondary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
-
-.upload-button:hover {
-  background-color: var(--primary-color);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .process-section {

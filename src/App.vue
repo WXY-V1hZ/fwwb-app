@@ -13,6 +13,8 @@
         :isPanelCollapsed="isPanelCollapsed" 
       />
     </div>
+    <HelpOverlay />
+    <WelcomeModal />
   </div>
 </template>
 
@@ -21,6 +23,8 @@ import { ref } from 'vue';
 import Banner from './components/Banner.vue';
 import ControlPanel from './components/ControlPanel.vue';
 import DisplayArea from './components/DisplayArea.vue';
+import HelpOverlay from './components/HelpOverlay.vue';
+import WelcomeModal from './components/WelcomeModal.vue';
 import type { ImageData, ProcessingStatus } from './types';
 
 const isPanelCollapsed = ref(false);
