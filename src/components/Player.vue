@@ -1,11 +1,11 @@
 <template>
   <div class="player-panel">
-    <div ref="playerRef" class="player-style" :style="{ height: playerHeight + 'px' }"></div>
+    <div ref="playerRef" class="player-style"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, defineProps } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, defineProps, watch } from 'vue'
 import Hls from 'hls.js'
 import Artplayer from 'artplayer'
 
@@ -17,7 +17,6 @@ const props = defineProps<{
 }>()
 
 const playerRef = ref<HTMLElement | null>(null)
-const playerHeight = ref(400)
 let player: any = null
 
 const initPlayer = () => {
@@ -118,22 +117,13 @@ const initPlayer = () => {
   player.on('video:ended', () => {
     console.log('Video playback ended')
   })
-
-  // Adjust player height based on container width
-  const updatePlayerHeight = () => {
-    if (playerRef.value) {
-      // Calculate height based on 16:9 aspect ratio
-      const width = playerRef.value.clientWidth
-      const height = Math.round(width * 0.5625) // 16:9 aspect ratio
-      playerHeight.value = height
+  
+  // Adjust player dimensions on window resize
+  window.addEventListener('resize', () => {
+    if (player) {
+      player.reSize()
     }
-  }
-
-  // Set initial height
-  updatePlayerHeight()
-
-  // Listen for window resize to update player dimensions
-  window.addEventListener('resize', updatePlayerHeight)
+  })
 }
 
 // Cleanup on component unmount
@@ -152,6 +142,13 @@ onMounted(() => {
       initPlayer()
     }
   })
+})
+
+// Watch for changes to the source
+watch(() => props.src, (newSrc, oldSrc) => {
+  if (newSrc !== oldSrc && player) {
+    player.switchUrl(newSrc, props.poster)
+  }
 })
 
 // Method to switch videos
@@ -180,6 +177,7 @@ defineExpose({
 /* 确保播放器完全适应容器 */
 .player-style {
   width: 100%;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
   background-color: #000;
@@ -187,6 +185,8 @@ defineExpose({
 
 /* 确保视频容器正确显示 */
 :deep(.art-video-player) {
+  width: 100% !important;
+  height: 100% !important;
   border-radius: 8px !important;
   overflow: hidden !important;
 }
@@ -205,11 +205,7 @@ defineExpose({
 /* 响应式处理 */
 @media (max-width: 768px) {
   .player-panel {
-    height: auto;
-  }
-  
-  .player-style {
-    height: 250px !important; /* 在移动设备上限制高度 */
+    height: 100%;
   }
 }
 </style>

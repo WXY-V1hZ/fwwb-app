@@ -296,10 +296,11 @@ function toggleSummary() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px; /* 设置最小高度确保有足够空间 */
   height: 100%;
-  padding: 0; /* 移除内边距让播放器占满空间 */
-  overflow: hidden; /* 防止内容溢出 */
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background-color: black;
 }
 
 .no-image,
@@ -362,18 +363,19 @@ function toggleSummary() {
   animation: fadeIn 0.5s ease-in-out;
   animation-delay: 0.2s;
   animation-fill-mode: both;
-  display: flex; /* 添加弹性布局 */
+  display: flex;
 }
 
 .result-card {
   height: 100%;
   display: flex;
-  flex-direction: column; /* 垂直布局 */
+  flex-direction: column;
 }
 
 .result-card .card-title {
   background-color: var(--accent-color);
-  flex-shrink: 0; /* 防止标题被压缩 */
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 /* 处理完成提示 */
@@ -435,6 +437,7 @@ function toggleSummary() {
   }
 }
 
+/* 修改移动设备上的响应式样式 */
 @media (max-width: 768px) {
   .input-displays {
     flex-direction: column;
@@ -445,8 +448,13 @@ function toggleSummary() {
     min-height: 200px;
   }
   
+  .output-display {
+    height: auto;
+    min-height: 300px;
+  }
+  
   .video-container {
-    min-height: 250px;
+    min-height: 300px;
   }
 }
 </style>
