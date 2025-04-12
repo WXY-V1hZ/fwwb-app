@@ -5,13 +5,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface ImageData {
-  infraredImage: string | null;
-  thermalImage: string | null;
-  processedImage: string | null;
+export interface VideoData {
+  infraredVideo: string | null;
+  thermalVideo: string | null;
+  processedVideo: string | null;
 }
 
-export interface HistoryItem extends ImageData {
+export interface HistoryItem extends VideoData {
   timestamp: number;
 }
 

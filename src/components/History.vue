@@ -24,7 +24,7 @@
       <div v-for="(item, index) in historyItems" :key="index" class="history-item" @click="loadHistory(item)">
         <div class="history-item-preview">
           <div class="preview-image">
-            <img :src="getResourceUrl(item.processedImage)" alt="处理结果" />
+            <img :src="getVideoThumbnail(item.processedVideo)" alt="处理结果" />
           </div>
         </div>
         <div class="history-item-info">
@@ -45,25 +45,25 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import api from '../api';
-import type { ImageData } from '../types';
+import type { VideoData } from '../types';
 
-interface HistoryItem extends ImageData {
+interface HistoryItem extends VideoData {
   timestamp: number;
 }
 
 const props = defineProps<{
-  currentImages: ImageData;
+  currentVideos: VideoData;
 }>();
 
 const emit = defineEmits<{
-  'load-history': [images: ImageData];
+  'load-history': [videos: VideoData];
 }>();
 
 const historyItems = ref<HistoryItem[]>([]);
 
 // 从本地存储加载历史记录
 onMounted(() => {
-  const savedHistory = localStorage.getItem('smoke-detection-history');
+  const savedHistory = localStorage.getItem('smoke-detection-video-history');
   if (savedHistory) {
     try {
       historyItems.value = JSON.parse(savedHistory);
@@ -75,31 +75,31 @@ onMounted(() => {
 });
 
 // 修改监视逻辑，只在处理完成后记录历史
-watch(() => props.currentImages, (newImages, oldImages) => {
-  // 只有当processedImage从null变为非null值时，才添加到历史记录
+watch(() => props.currentVideos, (newVideos, oldVideos) => {
+  // 只有当processedVideo从null变为非null值时，才添加到历史记录
   // 这确保了只在完成处理操作后才记录历史
-  if (newImages.processedImage &&
-    newImages.infraredImage &&
-    newImages.thermalImage &&
-    (!oldImages.processedImage || oldImages.processedImage !== newImages.processedImage)) {
+  if (newVideos.processedVideo &&
+    newVideos.infraredVideo &&
+    newVideos.thermalVideo &&
+    (!oldVideos.processedVideo || oldVideos.processedVideo !== newVideos.processedVideo)) {
     // 添加到历史记录
-    addToHistory(newImages);
+    addToHistory(newVideos);
   }
 }, { deep: true });
 
 // 添加到历史记录
-function addToHistory(images: ImageData) {
+function addToHistory(videos: VideoData) {
   // 检查是否已存在相同的处理结果（避免重复记录）
   if (historyItems.value.some(item =>
-    item.processedImage === images.processedImage &&
-    item.infraredImage === images.infraredImage &&
-    item.thermalImage === images.thermalImage
+    item.processedVideo === videos.processedVideo &&
+    item.infraredVideo === videos.infraredVideo &&
+    item.thermalVideo === videos.thermalVideo
   )) {
     return;
   }
 
   const historyItem: HistoryItem = {
-    ...images,
+    ...videos,
     timestamp: Date.now()
   };
 
@@ -116,15 +116,15 @@ function addToHistory(images: ImageData) {
 
 // 保存历史记录到本地存储
 function saveHistory() {
-  localStorage.setItem('smoke-detection-history', JSON.stringify(historyItems.value));
+  localStorage.setItem('smoke-detection-video-history', JSON.stringify(historyItems.value));
 }
 
 // 加载历史记录项目
 function loadHistory(item: HistoryItem) {
   emit('load-history', {
-    infraredImage: item.infraredImage,
-    thermalImage: item.thermalImage,
-    processedImage: item.processedImage
+    infraredVideo: item.infraredVideo,
+    thermalVideo: item.thermalVideo,
+    processedVideo: item.processedVideo
   });
 }
 
@@ -138,7 +138,7 @@ function deleteHistoryItem(index: number) {
 function clearHistory() {
   if (confirm('确定要清空所有历史记录吗？')) {
     historyItems.value = [];
-    localStorage.removeItem('smoke-detection-history');
+    localStorage.removeItem('smoke-detection-video-history');
   }
 }
 
@@ -148,10 +148,20 @@ function formatDate(timestamp: number): string {
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
 }
 
-// 获取资源URL
-function getResourceUrl(sourceName: string | null) {
-  if (!sourceName) return '';
-  return api.getResource(sourceName);
+// 获取视频缩略图
+function getVideoThumbnail(videoPath: string | null) {
+  if (!videoPath) return '';
+  
+  // 如果是处理后的视频文件夹路径（末尾有/）
+  if (videoPath.endsWith('/')) {
+    // 去除末尾的/并添加.png后缀
+    const thumbnailPath = videoPath.slice(0, -1) + '.png';
+    return api.getImageResource(thumbnailPath);
+  }
+  
+  // 对于上传的视频，直接替换.mp4为.png
+  const thumbnailPath = videoPath.replace('.mp4', '.png');
+  return api.getImageResource(thumbnailPath);
 }
 </script>
 

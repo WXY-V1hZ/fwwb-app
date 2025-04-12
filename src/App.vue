@@ -3,12 +3,12 @@
     <Banner />
     <div class="main-content">
       <ControlPanel 
-        @update:images="updateImages" 
+        @update:videos="updateVideos" 
         @update:processingStatus="updateProcessingStatus"
         @update:isPanelCollapsed="updatePanelCollapsed"
       />
       <DisplayArea 
-        :images="images" 
+        :videos="videos" 
         :processingStatus="processingStatus" 
         :isPanelCollapsed="isPanelCollapsed" 
       />
@@ -25,13 +25,13 @@ import ControlPanel from './components/ControlPanel.vue';
 import DisplayArea from './components/DisplayArea.vue';
 import HelpOverlay from './components/HelpOverlay.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
-import type { ImageData, ProcessingStatus } from './types';
+import type { VideoData, ProcessingStatus } from './types';
 
 const isPanelCollapsed = ref(false);
-const images = ref<ImageData>({
-  infraredImage: null,
-  thermalImage: null,
-  processedImage: null
+const videos = ref<VideoData>({
+  infraredVideo: null,
+  thermalVideo: null,
+  processedVideo: null
 });
 
 const processingStatus = ref<ProcessingStatus>({
@@ -39,8 +39,8 @@ const processingStatus = ref<ProcessingStatus>({
   progress: 0
 });
 
-function updateImages(newImages: ImageData) {
-  images.value = {...newImages};
+function updateVideos(newVideos: VideoData) {
+  videos.value = {...newVideos};
 }
 
 function updateProcessingStatus(status: ProcessingStatus) {

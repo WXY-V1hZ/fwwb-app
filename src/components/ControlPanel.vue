@@ -36,10 +36,10 @@
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
               <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
-            红外图像
+            红外视频
           </div>
           <DragDropUpload label="红外" :preview-image="previewInfrared" :disabled="processingStatus.isProcessing"
-            @file-selected="handleInfraredUpload" @file-removed="removeInfraredImage" />
+            @file-selected="handleInfraredUpload" @file-removed="removeInfraredVideo" />
         </div>
 
         <div class="upload-item">
@@ -50,10 +50,10 @@
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
               <path d="M21 15 Z v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
             </svg>
-            热成像图像
+            热成像视频
           </div>
           <DragDropUpload label="热成像" :preview-image="previewThermal" :disabled="processingStatus.isProcessing"
-            @file-selected="handleThermalUpload" @file-removed="removeThermalImage" />
+            @file-selected="handleThermalUpload" @file-removed="removeThermalVideo" />
         </div>
       </div>
 
@@ -79,10 +79,10 @@
       </div>
 
       <!-- 历史记录组件 -->
-      <History :current-images="{
-        infraredImage: infraredFile,
-        thermalImage: thermalFile,
-        processedImage: processedImage
+      <History :current-videos="{
+        infraredVideo: infraredFile,
+        thermalVideo: thermalFile,
+        processedVideo: processedVideo
       }" @load-history="loadFromHistory" />
     </div>
   </div>
@@ -93,10 +93,10 @@ import { ref, computed, watch } from 'vue';
 import api from '../api';
 import History from './History.vue';
 import DragDropUpload from './DragDropUpload.vue';
-import type { ProcessingStatus, ImageData } from '../types';
+import type { ProcessingStatus, VideoData } from '../types';
 
 const emit = defineEmits<{
-  'update:images': [{ infraredImage: string | null; thermalImage: string | null; processedImage: string | null }],
+  'update:videos': [{ infraredVideo: string | null; thermalVideo: string | null; processedVideo: string | null }],
   'update:processingStatus': [ProcessingStatus],
   'update:isPanelCollapsed': [boolean]
 }>();
@@ -106,7 +106,7 @@ const infraredFile = ref<string | null>(null);
 const thermalFile = ref<string | null>(null);
 const previewInfrared = ref<string | null>(null);
 const previewThermal = ref<string | null>(null);
-const processedImage = ref<string | null>(null);
+const processedVideo = ref<string | null>(null);
 const displayProgress = ref(0); // 用于显示的进度值
 
 // 使用computed属性确保侧边栏宽度一致
@@ -146,7 +146,7 @@ function handlePanelClick() {
   if (isCollapsed.value) {
     isCollapsed.value = false;
     emit('update:isPanelCollapsed', false);
-    updateImages();
+    updateVideos();
   }
 }
 
@@ -154,48 +154,54 @@ function togglePanel() {
   isCollapsed.value = !isCollapsed.value;
   // 通知父组件侧边栏状态变化
   emit('update:isPanelCollapsed', isCollapsed.value);
-  updateImages();
+  updateVideos();
 }
 
-// 单独的方法来更新图像数据
-function updateImages() {
-  emit('update:images', {
-    infraredImage: infraredFile.value,
-    thermalImage: thermalFile.value,
-    processedImage: processedImage.value
+// 单独的方法来更新视频数据
+function updateVideos() {
+  emit('update:videos', {
+    infraredVideo: infraredFile.value,
+    thermalVideo: thermalFile.value,
+    processedVideo: processedVideo.value
   });
 }
 
-function loadFromHistory(historyImages: ImageData) {
+function loadFromHistory(historyVideos: VideoData) {
   if (processingStatus.value.isProcessing) {
     alert('正在处理中，请稍后再试');
     return;
   }
 
   // 更新当前数据
-  infraredFile.value = historyImages.infraredImage;
-  thermalFile.value = historyImages.thermalImage;
-  processedImage.value = historyImages.processedImage;
+  infraredFile.value = historyVideos.infraredVideo;
+  thermalFile.value = historyVideos.thermalVideo;
+  processedVideo.value = historyVideos.processedVideo;
 
   // 更新预览
   if (infraredFile.value) {
-    previewInfrared.value = api.getResource(infraredFile.value);
+    // 获取对应的缩略图
+    const infraredThumbnail = infraredFile.value.replace('.mp4', '.png');
+    previewInfrared.value = api.getImageResource(infraredThumbnail);
   }
   if (thermalFile.value) {
-    previewThermal.value = api.getResource(thermalFile.value);
+    // 获取对应的缩略图
+    const thermalThumbnail = thermalFile.value.replace('.mp4', '.png');
+    previewThermal.value = api.getImageResource(thermalThumbnail);
   }
 
   // 更新显示但不影响侧边栏宽度
-  updateImages();
+  updateVideos();
 }
 
 async function handleInfraredUpload(file: File) {
   try {
-    const response = await api.uploadImage(file);
+    const response = await api.uploadVideo(file);
     if (response.data.status === 'success') {
       infraredFile.value = response.data.data;
-      previewInfrared.value = api.getResource(response.data.data);
-      updateImages();
+      // 获取对应的缩略图
+      const infraredThumbnail = infraredFile.value.replace('.mp4', '.png');
+      previewInfrared.value = api.getImageResource(infraredThumbnail);
+      updateVideos();
     } else {
       alert('上传失败: ' + response.data.info);
     }
@@ -205,19 +211,21 @@ async function handleInfraredUpload(file: File) {
   }
 }
 
-function removeInfraredImage() {
+function removeInfraredVideo() {
   infraredFile.value = null;
   previewInfrared.value = null;
-  updateImages();
+  updateVideos();
 }
 
 async function handleThermalUpload(file: File) {
   try {
-    const response = await api.uploadImage(file);
+    const response = await api.uploadVideo(file);
     if (response.data.status === 'success') {
       thermalFile.value = response.data.data;
-      previewThermal.value = api.getResource(response.data.data);
-      updateImages();
+      // 获取对应的缩略图
+      const thermalThumbnail = thermalFile.value.replace('.mp4', '.png');
+      previewThermal.value = api.getImageResource(thermalThumbnail);
+      updateVideos();
     } else {
       alert('上传失败: ' + response.data.info);
     }
@@ -227,16 +235,17 @@ async function handleThermalUpload(file: File) {
   }
 }
 
-function removeThermalImage() {
+function removeThermalVideo() {
   thermalFile.value = null;
   previewThermal.value = null;
-  updateImages();
+  updateVideos();
 }
 
 async function startProcessing() {
   if (!canProcess.value || processingStatus.value.isProcessing) return;
 
   try {
+    // 开始处理，进度设为30%
     processingStatus.value = {
       isProcessing: true,
       progress: 30
@@ -247,11 +256,12 @@ async function startProcessing() {
     const response = await api.getResult(infraredFile.value!, thermalFile.value!);
 
     if (response.data.status === 'success') {
+      // 更新进度为70%
       processingStatus.value.progress = 70;
       emit('update:processingStatus', processingStatus.value);
 
-      // 更新处理后的图像
-      processedImage.value = response.data.data;
+      // 更新处理后的视频
+      processedVideo.value = response.data.data;
 
       // 完成处理
       setTimeout(() => {
@@ -261,7 +271,7 @@ async function startProcessing() {
         };
 
         emit('update:processingStatus', processingStatus.value);
-        updateImages();
+        updateVideos();
       }, 500);
     } else {
       processingStatus.value.isProcessing = false;

@@ -2,7 +2,7 @@
     <div class="drag-drop-container" :class="{ 'drag-active': isDragActive, 'with-preview': !!previewImage }"
         @dragenter="onDragEnter" @dragleave="onDragLeave" @dragover.prevent @drop="onDrop">
         <div v-if="previewImage" class="preview-container">
-            <img :src="previewImage" alt="图像预览" />
+            <img :src="previewImage" alt="视频预览" />
         </div>
         <div v-else class="upload-placeholder" @click="triggerFileInput">
             <div class="upload-icon">
@@ -14,13 +14,13 @@
                 </svg>
             </div>
             <div class="upload-text">
-                <p>拖拽或点击上传{{ label }}图像</p>
-                <p class="upload-hint">支持 JPG、PNG 等常见图像格式</p>
+                <p>拖拽或点击上传{{ label }}视频</p>
+                <p class="upload-hint">支持 MP4、AVI 等常见视频格式</p>
             </div>
         </div>
 
         <!-- 隐藏文件输入框，通过按钮和占位区域的点击来触发 -->
-        <input type="file" class="file-input" ref="fileInput" accept="image/*" @change="handleFileChange"
+        <input type="file" class="file-input" ref="fileInput" accept="video/*" @change="handleFileChange"
             :disabled="disabled" style="display: none;" />
 
         <div class="controls" v-if="previewImage">
@@ -87,10 +87,10 @@ function onDrop(e: DragEvent) {
     const files = e.dataTransfer.files;
     if (files.length > 0) {
         const file = files[0];
-        if (file.type.startsWith('image/')) {
+        if (file.type.startsWith('video/')) {
             emit('file-selected', file);
         } else {
-            alert('请上传图片文件');
+            alert('请上传视频文件');
         }
     }
 }

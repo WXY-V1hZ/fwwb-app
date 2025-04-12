@@ -3,44 +3,18 @@
     <div class="display-container">
       <div class="input-displays">
         <div class="display-card">
-          <div class="card-title">红外图像 (输入1)</div>
+          <div class="card-title">红外视频 (输入1)</div>
           <div class="image-container">
-            <a v-if="images.infraredImage" :href="getResourceUrl(images.infraredImage)" data-fancybox="infrared-gallery"
-              :data-caption="'红外图像'" class="fancybox-link">
-              <img :src="getResourceUrl(images.infraredImage)" alt="红外图像" />
-              <div class="zoom-hint">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  <line x1="11" y1="8" x2="11" y2="14"></line>
-                  <line x1="8" y1="11" x2="14" y2="11"></line>
-                </svg>
-                <span>点击放大</span>
-              </div>
-            </a>
-            <div v-else class="no-image">未上传红外图像</div>
+            <img v-if="videos.infraredVideo" :src="getVideoThumbnail(videos.infraredVideo)" alt="红外视频" />
+            <div v-else class="no-image">未上传红外视频</div>
           </div>
         </div>
 
         <div class="display-card">
-          <div class="card-title">热成像图像 (输入2)</div>
+          <div class="card-title">热成像视频 (输入2)</div>
           <div class="image-container">
-            <a v-if="images.thermalImage" :href="getResourceUrl(images.thermalImage)" data-fancybox="thermal-gallery"
-              :data-caption="'热成像图像'" class="fancybox-link">
-              <img :src="getResourceUrl(images.thermalImage)" alt="热成像图像" />
-              <div class="zoom-hint">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  <line x1="11" y1="8" x2="11" y2="14"></line>
-                  <line x1="8" y1="11" x2="14" y2="11"></line>
-                </svg>
-                <span>点击放大</span>
-              </div>
-            </a>
-            <div v-else class="no-image">未上传热成像图像</div>
+            <img v-if="videos.thermalVideo" :src="getVideoThumbnail(videos.thermalVideo)" alt="热成像视频" />
+            <div v-else class="no-image">未上传热成像视频</div>
           </div>
         </div>
       </div>
@@ -65,7 +39,7 @@
         <div class="display-card result-card">
           <div class="card-title">
             处理结果 (浓烟环境下人体目标检测)
-            <button v-if="images.processedImage" class="summary-toggle-button" @click="toggleSummary"
+            <button v-if="videos.processedVideo" class="summary-toggle-button" @click="toggleSummary"
               :class="{ 'active': showSummary }" title="显示/隐藏分析结果">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -76,29 +50,21 @@
               </svg>
             </button>
           </div>
-          <div class="image-container">
-            <a v-if="images.processedImage" :href="getResourceUrl(images.processedImage)"
-              data-fancybox="processed-gallery" :data-caption="'处理结果 - 浓烟环境下人体目标检测'" class="fancybox-link">
-              <img :src="getResourceUrl(images.processedImage)" alt="处理结果" />
-              <div class="zoom-hint">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  <line x1="11" y1="8" x2="11" y2="14"></line>
-                  <line x1="8" y1="11" x2="14" y2="11"></line>
-                </svg>
-                <span>点击放大</span>
-              </div>
-            </a>
-            <div v-else class="no-image">尚未处理</div>
+          <div class="video-container" v-if="videos.processedVideo">
+            <Player 
+              :src="getVideoResourceUrl(processedVideoInfo.date, processedVideoInfo.folderPath)" 
+              :poster="getVideoThumbnail(videos.processedVideo)"
+              :dateFolder="processedVideoInfo.date"
+              :folderPath="processedVideoInfo.folderPath"
+            />
           </div>
+          <div v-else class="no-video">尚未处理</div>
         </div>
       </div>
     </div>
 
     <!-- 当有处理结果且用户点击分析按钮时显示结果分析 -->
-    <ResultsSummary v-if="showSummary && images.processedImage" :visible="showSummary" />
+    <ResultsSummary v-if="showSummary && videos.processedVideo" :visible="showSummary" />
 
     <!-- 检测完成提示 -->
     <div class="detection-complete-toast" v-if="showCompletionToast">
@@ -118,15 +84,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import api from '../api';
 import ResultsSummary from './ResultsSummary.vue';
-import type { ImageData, ProcessingStatus } from '../types';
-import { Fancybox } from "@fancyapps/ui";
-import "@fancyapps/ui/dist/fancybox/fancybox.css";
+import Player from './Player.vue';
+import type { VideoData, ProcessingStatus } from '../types';
 
 const props = defineProps<{
-  images: ImageData;
+  videos: VideoData;
   processingStatus: ProcessingStatus;
   isPanelCollapsed: boolean;
 }>();
@@ -138,6 +103,24 @@ const displayProgress = ref(0); // 用于显示的进度值
 // 计算实际显示的进度
 const progressDisplay = computed(() => {
   return displayProgress.value;
+});
+
+// 解析处理后视频的日期和文件夹路径
+const processedVideoInfo = computed(() => {
+  if (!props.videos.processedVideo) {
+    return { date: null, folderPath: null };
+  }
+  
+  // 分析路径结构 (如: 20250411/8UH2qlyfeZ5iDWIIfc5WXM7qvKS5J3Yhm3mo0dIl/)
+  const pathParts = props.videos.processedVideo.split('/');
+  if (pathParts.length >= 2) {
+    return {
+      date: pathParts[0],
+      folderPath: pathParts[1]
+    };
+  }
+  
+  return { date: null, folderPath: null };
 });
 
 // 监听处理状态变化
@@ -163,31 +146,26 @@ watch(() => props.processingStatus, (newStatus, oldStatus) => {
   }
 }, { deep: true });
 
-// 初始化 Fancybox
-onMounted(() => {
-  // 配置 Fancybox
-  Fancybox.bind("[data-fancybox]", {
-    // 自定义 Fancybox 配置
-    animated: true,
-    showClass: "fancybox-fadeIn",
-    hideClass: "fancybox-fadeOut",
-    dragToClose: false,
-    trapFocus: true,
-    autoFocus: true,
-    placeFocusBack: true,
-    // 界面语言可设置为中文
-    l10n: {
-      CLOSE: "关闭",
-      NEXT: "下一张",
-      PREV: "上一张",
-      ZOOM: "缩放",
-    }
-  });
-});
+// 获取视频缩略图
+function getVideoThumbnail(videoPath: string | null) {
+  if (!videoPath) return '';
+  
+  // 如果是处理后的视频文件夹路径（末尾有/）
+  if (videoPath.endsWith('/')) {
+    // 去除末尾的/并添加.png后缀
+    const thumbnailPath = videoPath.slice(0, -1) + '.png';
+    return api.getImageResource(thumbnailPath);
+  }
+  
+  // 对于上传的视频，直接替换.mp4为.png
+  const thumbnailPath = videoPath.replace('.mp4', '.png');
+  return api.getImageResource(thumbnailPath);
+}
 
-function getResourceUrl(sourceName: string | null) {
-  if (!sourceName) return '';
-  return api.getResource(sourceName);
+// 获取视频资源URL用于播放
+function getVideoResourceUrl(date: string | null, folderPath: string | null) {
+  if (!date || !folderPath) return '';
+  return api.getVideoResource(date, folderPath);
 }
 
 function toggleSummary() {
@@ -291,16 +269,6 @@ function toggleSummary() {
   position: relative;
 }
 
-.fancybox-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  cursor: zoom-in;
-  position: relative;
-}
-
 .image-container img {
   max-width: 100%;
   max-height: 100%;
@@ -309,32 +277,17 @@ function toggleSummary() {
   transition: transform 0.3s ease;
 }
 
-.fancybox-link:hover img {
-  transform: scale(1.03);
-}
-
-.zoom-hint {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
+.video-container {
+  flex-grow: 1;
+  position: relative;
+  padding: 15px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 5;
+  justify-content: center;
 }
 
-.fancybox-link:hover .zoom-hint {
-  opacity: 1;
-}
-
-.no-image {
+.no-image,
+.no-video {
   color: #999;
   font-size: 16px;
   text-align: center;
