@@ -199,7 +199,7 @@ async function handleInfraredUpload(file: File) {
     if (response.data.status === 'success') {
       infraredFile.value = response.data.data;
       // 获取对应的缩略图
-      const infraredThumbnail = infraredFile.value.replace('.mp4', '.png');
+      const infraredThumbnail = infraredFile.value!.replace('.mp4', '.png');
       previewInfrared.value = api.getImageResource(infraredThumbnail);
       updateVideos();
     } else {
@@ -223,7 +223,7 @@ async function handleThermalUpload(file: File) {
     if (response.data.status === 'success') {
       thermalFile.value = response.data.data;
       // 获取对应的缩略图
-      const thermalThumbnail = thermalFile.value.replace('.mp4', '.png');
+      const thermalThumbnail = thermalFile.value!.replace('.mp4', '.png');
       previewThermal.value = api.getImageResource(thermalThumbnail);
       updateVideos();
     } else {

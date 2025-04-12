@@ -24,7 +24,7 @@ const initPlayer = () => {
   Artplayer.AUTO_PLAYBACK_MIN = 10
 
   player = new Artplayer({
-    container: playerRef.value as HTMLElement,
+    container: playerRef.value as HTMLDivElement,
     url: props.src,
     type: 'm3u8',
     customType: {
@@ -36,10 +36,9 @@ const initPlayer = () => {
             xhrSetup: function (xhr, url) {
               if (url.endsWith('.ts')) {
                 const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
-                // Get just the TS filename
                 const tsFile = url.substring(url.lastIndexOf('/') + 1);
 
-                if (!url.includes(props.folderPath)) {
+                if (props.folderPath && !url.includes(props.folderPath)) {
                   const correctedUrl = `${baseUrl}${props.folderPath}/${tsFile}`;
                   console.log('Corrected TS URL:', correctedUrl);
                   xhr.open('GET', correctedUrl, true);
