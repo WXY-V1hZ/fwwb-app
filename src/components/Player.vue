@@ -11,7 +11,6 @@ import Artplayer from 'artplayer'
 
 const props = defineProps<{
   src: string;
-  poster?: string;
   dateFolder: string | null;
   folderPath: string | null;
 }>()
@@ -20,47 +19,37 @@ const playerRef = ref<HTMLElement | null>(null)
 let player: any = null
 
 const initPlayer = () => {
-  // Hide right-click menu
   Artplayer.CONTEXTMENU = false
-  // Maximum number of records for auto playback, default is 10
   Artplayer.AUTO_PLAYBACK_MAX = 20
-  // Minimum record duration for auto playback, in seconds, default is 5
   Artplayer.AUTO_PLAYBACK_MIN = 10
 
   player = new Artplayer({
     container: playerRef.value as HTMLElement,
     url: props.src,
-    poster: props.poster,
     type: 'm3u8',
     customType: {
       m3u8: function (video: HTMLVideoElement, url: string, art: any) {
         if (Hls.isSupported()) {
           if (art.hls) art.hls.destroy()
-          
+
           const hls = new Hls({
-            // Override the load method to fix TS segment URLs
-            xhrSetup: function(xhr, url) {
-              // Check if this is a TS file request
+            xhrSetup: function (xhr, url) {
               if (url.endsWith('.ts')) {
-                // Get the folder path from original HLS source URL
                 const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
                 // Get just the TS filename
                 const tsFile = url.substring(url.lastIndexOf('/') + 1);
-                
-                // Skip if already has the full path
+
                 if (!url.includes(props.folderPath)) {
-                  // Construct correct URL with date and folderPath
                   const correctedUrl = `${baseUrl}${props.folderPath}/${tsFile}`;
                   console.log('Corrected TS URL:', correctedUrl);
                   xhr.open('GET', correctedUrl, true);
                   return;
                 }
               }
-              // Default behavior for non-TS files or already corrected URLs
               xhr.open('GET', url, true);
             }
           });
-          
+
           console.log('Loading HLS source:', url);
           hls.loadSource(url);
           hls.attachMedia(video);
@@ -73,19 +62,19 @@ const initPlayer = () => {
         }
       },
     },
-    theme: '#03a9f4', // Primary theme color for progress bar and highlighted elements
-    volume: 0.7, // Default volume
-    autoplay: false, // Don't autoplay by default
-    autoMini: false, // Don't minimize when scrolled out of view
-    fullscreen: true, // Allow fullscreen
-    fullscreenWeb: true, // Allow web fullscreen
-    setting: true, // Show settings panel
-    pip: true, // Enable picture-in-picture
-    playbackRate: true, // Show playback speed controls
-    flip: true, // Enable video flip
-    aspectRatio: true, // Enable aspect ratio controls
-    screenshot: true, // Enable screenshot
-    autoPlayback: true, // Enable auto playback
+    theme: '#03a9f4',
+    volume: 0.7,
+    autoplay: false,
+    autoMini: false,
+    fullscreen: true,
+    fullscreenWeb: true,
+    setting: true,
+    pip: true,
+    playbackRate: true,
+    flip: true,
+    aspectRatio: true,
+    screenshot: true,
+    autoPlayback: true,
     controls: [
       {
         name: 'replay',
@@ -104,7 +93,6 @@ const initPlayer = () => {
     ],
   })
 
-  // Show controls on hover
   player.on('hover', (state: boolean) => {
     let display = 'none'
     if (state) {
@@ -113,12 +101,10 @@ const initPlayer = () => {
     player.template.$bottom.style.display = display
   })
 
-  // Video end event
   player.on('video:ended', () => {
     console.log('Video playback ended')
   })
-  
-  // Adjust player dimensions on window resize
+
   window.addEventListener('resize', () => {
     if (player) {
       player.reSize()
@@ -126,7 +112,6 @@ const initPlayer = () => {
   })
 }
 
-// Cleanup on component unmount
 onBeforeUnmount(() => {
   if (player) {
     player.destroy(false)
@@ -144,21 +129,18 @@ onMounted(() => {
   })
 })
 
-// Watch for changes to the source
 watch(() => props.src, (newSrc, oldSrc) => {
   if (newSrc !== oldSrc && player) {
-    player.switchUrl(newSrc, props.poster)
+    player.switchUrl(newSrc)
   }
 })
 
-// Method to switch videos
-const switchVideo = (url: string, poster?: string) => {
+const switchVideo = (url: string) => {
   if (player) {
-    player.switchUrl(url, poster)
+    player.switchUrl(url)
   }
 }
 
-// Expose methods to parent component
 defineExpose({
   switchVideo
 })
@@ -174,7 +156,6 @@ defineExpose({
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 确保播放器完全适应容器 */
 .player-style {
   width: 100%;
   height: 100%;
@@ -183,7 +164,6 @@ defineExpose({
   background-color: #000;
 }
 
-/* 确保视频容器正确显示 */
 :deep(.art-video-player) {
   width: 100% !important;
   height: 100% !important;
@@ -197,12 +177,10 @@ defineExpose({
   object-fit: contain;
 }
 
-/* 控制条样式调整 */
 :deep(.art-control) {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent) !important;
 }
 
-/* 响应式处理 */
 @media (max-width: 768px) {
   .player-panel {
     height: 100%;

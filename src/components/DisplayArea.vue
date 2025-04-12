@@ -1,7 +1,7 @@
 <template>
   <div class="display-area" :class="{ 'panel-collapsed': isPanelCollapsed }">
-    <div class="display-container">
-      <div class="input-displays">
+    <div class="display-container" :class="{ 'expanded-output': isOutputExpanded }">
+      <div class="input-displays" :class="{ 'hidden': isOutputExpanded }">
         <div class="display-card">
           <div class="card-title">红外视频 (输入1)</div>
           <div class="image-container">
@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="arrow-container">
+      <div class="arrow-container" :class="{ 'hidden': isOutputExpanded }">
         <div class="process-arrow">
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,28 +35,36 @@
         </div>
       </div>
 
-      <div class="output-display">
+      <div class="output-display" :class="{ 'expanded': isOutputExpanded }">
         <div class="display-card result-card">
-          <div class="card-title">
-            处理结果 (浓烟环境下人体目标检测)
-            <button v-if="videos.processedVideo" class="summary-toggle-button" @click="toggleSummary"
-              :class="{ 'active': showSummary }" title="显示/隐藏分析结果">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          <div class="card-title" 
+            @click="toggleOutputExpand" 
+            :class="{ 'expandable': videos.processedVideo }" 
+            :title="videos.processedVideo ? '点击切换全屏显示/还原' : ''">
+            <div class="title-text">
+              处理结果 (浓烟环境下人体目标检测)
+              <svg v-if="videos.processedVideo" class="expand-indicator" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                <line x1="11" y1="8" x2="11" y2="14"></line>
-                <line x1="8" y1="11" x2="14" y2="11"></line>
+                <polyline v-if="!isOutputExpanded" points="17 11 12 6 7 11"></polyline>
+                <polyline v-else points="7 13 12 18 17 13"></polyline>
               </svg>
-            </button>
+            </div>
+            <div class="title-actions" @click.stop>
+              <button v-if="videos.processedVideo" class="summary-toggle-button" @click="toggleSummary"
+                :class="{ 'active': showSummary }" title="显示/隐藏分析结果">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="video-container" v-if="videos.processedVideo">
-            <Player 
-              :src="getVideoResourceUrl(processedVideoInfo.date, processedVideoInfo.folderPath)" 
-              :poster="getVideoThumbnail(videos.processedVideo)"
-              :dateFolder="processedVideoInfo.date"
-              :folderPath="processedVideoInfo.folderPath"
-            />
+            <Player :src="getVideoResourceUrl(processedVideoInfo.date, processedVideoInfo.folderPath)"
+              :dateFolder="processedVideoInfo.date" :folderPath="processedVideoInfo.folderPath" />
           </div>
           <div v-else class="no-video">尚未处理</div>
         </div>
@@ -99,6 +107,7 @@ const props = defineProps<{
 const showSummary = ref(false);
 const showCompletionToast = ref(false);
 const displayProgress = ref(0); // 用于显示的进度值
+const isOutputExpanded = ref(false); // 新增: 输出展示框是否展开的状态
 
 // 计算实际显示的进度
 const progressDisplay = computed(() => {
@@ -110,43 +119,36 @@ const processedVideoInfo = computed(() => {
   if (!props.videos.processedVideo) {
     return { date: null, folderPath: null };
   }
-  
+
   console.log("处理视频路径:", props.videos.processedVideo);
-  
+
   // 分析路径结构 (如: 20250411/8UH2qlyfeZ5iDWIIfc5WXM7qvKS5J3Yhm3mo0dIl/)
   const pathParts = props.videos.processedVideo.split('/');
   if (pathParts.length >= 2) {
     // 确保去掉末尾的斜杠
     const folderPath = pathParts[1].endsWith('/') ? pathParts[1].slice(0, -1) : pathParts[1];
-    
+
     console.log("解析结果 - 日期:", pathParts[0], "文件夹:", folderPath);
-    
+
     return {
       date: pathParts[0],
       folderPath: folderPath
     };
   }
-  
+
   return { date: null, folderPath: null };
 });
 
-// 监听处理状态变化
 watch(() => props.processingStatus, (newStatus, oldStatus) => {
-  // 实时更新显示进度
   displayProgress.value = newStatus.progress;
 
-  // 如果处理完成（从处理中变为未处理状态，且进度为100）
   if (oldStatus.isProcessing && !newStatus.isProcessing && newStatus.progress === 100) {
-    // 显示处理完成提示
     showCompletionToast.value = true;
 
-    // 保持进度条显示100%状态1秒
     setTimeout(() => {
-      // 1秒后将显示进度重置为0
       displayProgress.value = 0;
     }, 1000);
 
-    // 自动隐藏提示
     setTimeout(() => {
       showCompletionToast.value = false;
     }, 5000);
@@ -156,15 +158,12 @@ watch(() => props.processingStatus, (newStatus, oldStatus) => {
 // 获取视频缩略图
 function getVideoThumbnail(videoPath: string | null) {
   if (!videoPath) return '';
-  
-  // 如果是处理后的视频文件夹路径（末尾有/）
+
   if (videoPath.endsWith('/')) {
-    // 去除末尾的/并添加.png后缀
     const thumbnailPath = videoPath.slice(0, -1) + '.png';
     return api.getImageResource(thumbnailPath);
   }
-  
-  // 对于上传的视频，直接替换.mp4为.png
+
   const thumbnailPath = videoPath.replace('.mp4', '.png');
   return api.getImageResource(thumbnailPath);
 }
@@ -175,7 +174,7 @@ function getVideoResourceUrl(date: string | null, folderPath: string | null) {
     console.error("无法构建视频URL: 日期或文件夹路径为空");
     return '';
   }
-  
+
   const fullUrl = api.getVideoResource(date, folderPath);
   console.log("构建视频URL:", fullUrl);
   return fullUrl;
@@ -183,6 +182,11 @@ function getVideoResourceUrl(date: string | null, folderPath: string | null) {
 
 function toggleSummary() {
   showSummary.value = !showSummary.value;
+}
+
+// 新增: 切换输出区域展开/收起状态
+function toggleOutputExpand() {
+  isOutputExpanded.value = !isOutputExpanded.value;
 }
 </script>
 
@@ -211,6 +215,12 @@ function toggleSummary() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 20px;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* 新增: 输出展开时容器样式变更 */
+.display-container.expanded-output {
+  gap: 0;
 }
 
 .input-displays {
@@ -218,6 +228,16 @@ function toggleSummary() {
   gap: 20px;
   height: 40%;
   animation: fadeIn 0.5s ease-in-out;
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* 新增: 隐藏输入显示区域 */
+.input-displays.hidden {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .display-card {
@@ -247,6 +267,39 @@ function toggleSummary() {
   align-items: center;
 }
 
+/* 新增: 可点击的标题栏样式 */
+.card-title.expandable {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.card-title.expandable:hover {
+  background-color: var(--accent-color-hover, #0d6efd);
+}
+
+.title-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-indicator {
+  margin-left: 8px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.card-title.expandable:hover .expand-indicator {
+  opacity: 1;
+}
+
+/* 标题栏内的按钮组 */
+.title-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .summary-toggle-button {
   background: rgba(255, 255, 255, 0.2);
   border: none;
@@ -263,7 +316,6 @@ function toggleSummary() {
 
 .summary-toggle-button:hover {
   background: rgba(255, 255, 255, 0.4);
-  transform: rotate(45deg);
 }
 
 .summary-toggle-button.active {
@@ -323,6 +375,16 @@ function toggleSummary() {
   justify-content: center;
   align-items: center;
   height: 60px;
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* 新增: 隐藏箭头容器 */
+.arrow-container.hidden {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .process-arrow {
@@ -364,6 +426,12 @@ function toggleSummary() {
   animation-delay: 0.2s;
   animation-fill-mode: both;
   display: flex;
+  transition: height 0.3s ease;
+}
+
+/* 新增: 输出区域展开状态 */
+.output-display.expanded {
+  height: 100%;
 }
 
 .result-card {
@@ -437,7 +505,18 @@ function toggleSummary() {
   }
 }
 
-/* 修改移动设备上的响应式样式 */
+/* 新增动画: 展开/收起过渡 */
+@keyframes expandIn {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .input-displays {
     flex-direction: column;
@@ -447,12 +526,12 @@ function toggleSummary() {
   .display-card {
     min-height: 200px;
   }
-  
+
   .output-display {
     height: auto;
     min-height: 300px;
   }
-  
+
   .video-container {
     min-height: 300px;
   }
