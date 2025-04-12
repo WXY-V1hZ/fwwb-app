@@ -25,8 +25,8 @@
                 </svg>
               </div>
               <div class="step-content">
-                <h3>1. 上传图片</h3>
-                <p>选择并上传红外图像和热成像图像，两种图像均需上传才能进行处理。</p>
+                <h3>1. 上传视频</h3>
+                <p>选择并上传红外视频和热成像视频，两种视频均需上传才能进行处理。</p>
               </div>
             </div>
 
@@ -39,7 +39,7 @@
               </div>
               <div class="step-content">
                 <h3>2. 开始处理</h3>
-                <p>点击"开始处理"按钮，系统将自动分析上传的图像并判别浓烟环境中的人体目标。</p>
+                <p>点击"开始处理"按钮，系统将自动分析上传的视频并判别浓烟环境中的人体目标。</p>
               </div>
             </div>
 
@@ -47,14 +47,19 @@
               <div class="step-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
+                  <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                  <line x1="7" y1="2" x2="7" y2="22"></line>
+                  <line x1="17" y1="2" x2="17" y2="22"></line>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <line x1="2" y1="7" x2="7" y2="7"></line>
+                  <line x1="2" y1="17" x2="7" y2="17"></line>
+                  <line x1="17" y1="17" x2="22" y2="17"></line>
+                  <line x1="17" y1="7" x2="22" y2="7"></line>
                 </svg>
               </div>
               <div class="step-content">
                 <h3>3. 查看结果</h3>
-                <p>处理完成后，系统将在右侧显示带有人体目标标记的结果图像。</p>
+                <p>处理完成后，系统将在右侧显示带有人体目标标记的结果视频，您可以播放视频查看检测效果。</p>
               </div>
             </div>
 
