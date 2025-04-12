@@ -111,12 +111,19 @@ const processedVideoInfo = computed(() => {
     return { date: null, folderPath: null };
   }
   
+  console.log("处理视频路径:", props.videos.processedVideo);
+  
   // 分析路径结构 (如: 20250411/8UH2qlyfeZ5iDWIIfc5WXM7qvKS5J3Yhm3mo0dIl/)
   const pathParts = props.videos.processedVideo.split('/');
   if (pathParts.length >= 2) {
+    // 确保去掉末尾的斜杠
+    const folderPath = pathParts[1].endsWith('/') ? pathParts[1].slice(0, -1) : pathParts[1];
+    
+    console.log("解析结果 - 日期:", pathParts[0], "文件夹:", folderPath);
+    
     return {
       date: pathParts[0],
-      folderPath: pathParts[1]
+      folderPath: folderPath
     };
   }
   
@@ -164,8 +171,14 @@ function getVideoThumbnail(videoPath: string | null) {
 
 // 获取视频资源URL用于播放
 function getVideoResourceUrl(date: string | null, folderPath: string | null) {
-  if (!date || !folderPath) return '';
-  return api.getVideoResource(date, folderPath);
+  if (!date || !folderPath) {
+    console.error("无法构建视频URL: 日期或文件夹路径为空");
+    return '';
+  }
+  
+  const fullUrl = api.getVideoResource(date, folderPath);
+  console.log("构建视频URL:", fullUrl);
+  return fullUrl;
 }
 
 function toggleSummary() {
@@ -280,10 +293,13 @@ function toggleSummary() {
 .video-container {
   flex-grow: 1;
   position: relative;
-  padding: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 400px; /* 设置最小高度确保有足够空间 */
+  height: 100%;
+  padding: 0; /* 移除内边距让播放器占满空间 */
+  overflow: hidden; /* 防止内容溢出 */
 }
 
 .no-image,
@@ -346,14 +362,18 @@ function toggleSummary() {
   animation: fadeIn 0.5s ease-in-out;
   animation-delay: 0.2s;
   animation-fill-mode: both;
+  display: flex; /* 添加弹性布局 */
 }
 
 .result-card {
   height: 100%;
+  display: flex;
+  flex-direction: column; /* 垂直布局 */
 }
 
 .result-card .card-title {
   background-color: var(--accent-color);
+  flex-shrink: 0; /* 防止标题被压缩 */
 }
 
 /* 处理完成提示 */
@@ -423,6 +443,10 @@ function toggleSummary() {
 
   .display-card {
     min-height: 200px;
+  }
+  
+  .video-container {
+    min-height: 250px;
   }
 }
 </style>
