@@ -14,13 +14,22 @@
 
 - Node.js (建议版本 ≥ 16)
 - openjdk17
+- ffmpeg
 
 ## ▶️ 启动项目
+
+获取源代码
+
+```bash
+git clone git@github.com:WXY-V1hZ/fwwb-app.git
+cd fwwb-app
+```
 
 在项目根目录下直接运行以下命令，一键启动前后端服务：
 
 ```bash
 # Windows
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 startup.ps1
 
 # Linux
