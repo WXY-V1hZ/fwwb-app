@@ -12,9 +12,16 @@
 
 ### ✅ 环境依赖
 
-- Node.js (建议版本 ≥ 16)
-- openjdk17
+**WebUI依赖**：
+
+- Node.js 16+
+- openjdk17 / python 3.8+
 - ffmpeg
+
+**算法模型依赖**：
+
+- python 3.8+
+- yolo12
 
 ## ▶️ 启动项目
 
@@ -24,6 +31,8 @@
 git clone git@github.com:WXY-V1hZ/fwwb-app.git
 cd fwwb-app
 ```
+
+确保依赖安装完成后，
 
 在项目根目录下直接运行以下命令，一键启动前后端服务：
 
